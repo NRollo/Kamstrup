@@ -1,0 +1,12 @@
+.pio/
+managed_components/
+include/secrets.h
+*.bak
+*.o
+*.a
+*.so
+.DS_Store
+.clang-format
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json

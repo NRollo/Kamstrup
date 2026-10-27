@@ -1,0 +1,61 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "PlatformIO: Build (Windows Workaround)",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "set PLATFORMIO_BUILD_DIR=C:\\tmp\\pio_build && %USERPROFILE%\\.platformio\\penv\\Scripts\\platformio.exe run -e supermini_esp32c3"
+            ],
+            "problemMatcher": [
+                "$platformio"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PlatformIO: Upload (Windows Workaround)",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "set PLATFORMIO_BUILD_DIR=C:\\tmp\\pio_build && %USERPROFILE%\\.platformio\\penv\\Scripts\\platformio.exe run -e supermini_esp32c3 -t upload"
+            ],
+            "problemMatcher": [
+                "$platformio"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PlatformIO: Clean",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "rmdir /s /q .pio 2>nul & rmdir /s /q C:\\tmp\\pio_build 2>nul & echo Build directories cleaned"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        }
+    ]
+}
