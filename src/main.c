@@ -1,3 +1,4 @@
+#include "driver/gpio.h"
 #include "driver/uart.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -8,15 +9,19 @@
 #include "kmp.h"
 #include "meter_mqtt.h"
 #include "secrets.h"
+#include "status_led.h"
 #include "wifi_manager.h"
 
 static const char *TAG = "MAIN";
 
 #define KMP_UART_PORT     UART_NUM_1
-#define KMP_RX_PIN        1
-#define KMP_TX_PIN        3
-#define READ_INTERVAL_SEC 10
-#define MQTT_BASE_TOPIC   "kamstrup"
+#define KMP_TX_PIN        1
+#define KMP_RX_PIN        3
+#define READ_INTERVAL_SEC 1
+#define MQTT_BASE_TOPIC   "home/varme"
+
+// Set to 1 to toggle the TX pin at 1 Hz forever (hardware test), 0 for normal operation
+#define KMP_TX_PIN_TEST   0
 
 #define STR_(x) #x
 #define STR(x)  STR_(x)
@@ -27,6 +32,7 @@ static void meter_task(void *arg) {
     while (1) {
         int valid = kmp_poll(readings);
         if (valid > 0) {
+            status_led_pulse();
             esp_err_t err = meter_mqtt_publish_readings(readings, KMP_NUM_VALUES);
             if (err != ESP_OK) {
                 ESP_LOGW(TAG, "Publish failed: %s", esp_err_to_name(err));
@@ -37,6 +43,16 @@ static void meter_task(void *arg) {
 }
 
 void app_main(void) {
+#if KMP_TX_PIN_TEST
+    gpio_reset_pin(KMP_TX_PIN);
+    gpio_set_direction(KMP_TX_PIN, GPIO_MODE_OUTPUT);
+    for (int level = 0;; level ^= 1) {
+        gpio_set_level(KMP_TX_PIN, level);
+        ESP_LOGI(TAG, "GPIO%d = %d", KMP_TX_PIN, level);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+#endif
+
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
@@ -46,6 +62,7 @@ void app_main(void) {
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     ESP_ERROR_CHECK(kmp_init(KMP_UART_PORT, KMP_TX_PIN, KMP_RX_PIN));
+    status_led_start();
 
     wifi_init(WIFI_SSID, WIFI_PASSWORD);
 

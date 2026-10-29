@@ -14,7 +14,7 @@ static const char *TAG = "WIFI";
 
 // Max TX power in 0.25 dBm units. SuperMini-style C3 boards often fail to authenticate at the
 // default 20 dBm (reason 2, AUTH_EXPIRE); 8.5 dBm is the usual fix. Raise it if signal is weak.
-#define WIFI_TX_POWER_QDBM 34
+#define WIFI_TX_POWER_QDBM 66
 
 static EventGroupHandle_t s_wifi_event_group;
 static char s_ip_addr[16] = {0};

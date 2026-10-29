@@ -8,6 +8,9 @@
 #define KMP_RX_BUFFER_SIZE   256
 #define KMP_RESPONSE_TIMEOUT_MS 1000
 
+// Set to 1 to log every received byte, including the echo of our own request (receiver hardware test)
+#define KMP_RX_DEBUG         1
+
 static const char *TAG = "KMP";
 static uart_port_t s_port = UART_NUM_1;
 
@@ -40,6 +43,9 @@ esp_err_t kmp_init(uart_port_t port, int tx_pin, int rx_pin) {
     ESP_RETURN_ON_ERROR(uart_param_config(port, &cfg), TAG, "uart_param_config");
     ESP_RETURN_ON_ERROR(uart_set_pin(port, tx_pin, rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE), TAG,
                         "uart_set_pin");
+    // TX drives the IR LED through an NPN (pin high = LED on), so the idle level must be inverted.
+    // The RX phototransistor already has the right polarity (light = low).
+    ESP_RETURN_ON_ERROR(uart_set_line_inverse(port, UART_SIGNAL_TXD_INV), TAG, "uart_set_line_inverse");
     ESP_LOGI(TAG, "UART%d ready: TX=GPIO%d RX=GPIO%d, %d baud 8N2", port, tx_pin, rx_pin, KMP_BAUD_RATE);
     return ESP_OK;
 }
@@ -58,6 +64,9 @@ static esp_err_t read_frame(uint8_t *frame, size_t max, size_t *len) {
         if (uart_read_bytes(s_port, &b, 1, pdMS_TO_TICKS(20)) != 1) {
             continue;
         }
+#if KMP_RX_DEBUG
+        ESP_LOGI(TAG, "RX 0x%02X", b);
+#endif
         if (b == KMP_RESP_START) {
             started = true;
             n = 0;
