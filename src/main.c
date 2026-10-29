@@ -17,7 +17,7 @@ static const char *TAG = "MAIN";
 #define KMP_UART_PORT     UART_NUM_1
 #define KMP_TX_PIN        1
 #define KMP_RX_PIN        3
-#define READ_INTERVAL_SEC 1
+#define READ_INTERVAL_SEC 10
 #define MQTT_BASE_TOPIC   "home/varme"
 
 // Set to 1 to toggle the TX pin at 1 Hz forever (hardware test), 0 for normal operation

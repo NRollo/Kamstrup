@@ -100,7 +100,7 @@ esp_err_t kmp_read_register(uint16_t reg, kmp_value_t *out) {
     uart_flush_input(s_port);
     uart_write_bytes(s_port, request, req_len);
     uart_wait_tx_done(s_port, pdMS_TO_TICKS(500));
-    ESP_LOGHEX(TAG, "TX", request, req_len);
+    //ESP_LOGHEX(TAG, "TX", request, req_len);
     esp_err_t err = read_frame(frame, sizeof(frame), &frame_len);
     if (err != ESP_OK) {
         return err;
@@ -131,7 +131,7 @@ int kmp_poll(kmp_reading_t readings[KMP_NUM_VALUES]) {
             ESP_LOGW(TAG, "No answer from meter - is the optical interface awake? (press the meter button)");
             break;
         }
-        vTaskDelay(pdMS_TO_TICKS(300)); // Delay 300ms between register reads
+        vTaskDelay(pdMS_TO_TICKS(100)); // Delay 100ms between register reads
     }
     return valid;
 }
