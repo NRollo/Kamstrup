@@ -12,7 +12,7 @@ static const char *const UNIT_NAMES[] = {
 
 const char *kmp_unit_name(uint8_t unit) {
     if (unit >= sizeof(UNIT_NAMES) / sizeof(UNIT_NAMES[0])) {
-        return "";
+        return "???";
     }
     return UNIT_NAMES[unit];
 }
