@@ -61,6 +61,8 @@ configured for (GJ, kWh, ...). Only registers that answered are included.
 - `src/wifi_manager.c`: WiFi station
 - `src/idf_component.yml`: managed components (`espressif/mqtt`, `espressif/cjson`, `joltwallet/littlefs`)
 
+*Note: The 'littlefs' component is not used in the application, yet.*  
+
 ## Build
 
 On Windows use `BUILD_WINDOWS.bat` or the VS Code build task (see `WINDOWS_BUILD.md`).
