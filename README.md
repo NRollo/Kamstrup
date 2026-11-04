@@ -15,6 +15,9 @@ UART1, 1200 baud, 8 data bits, no parity, 2 stop bits.
 The meter's optical interface only answers after the button on the meter has been
 pressed, and stays awake for a few minutes. If the log shows `No answer from meter`,
 press the button.
+In order to keep the meter awake all the time, mount a magnet(s) around the optical interface on
+the Multical 403 meter. My solution is to mount a ring-magnet around the optical interface and
+mount the IR LED/photo transistor in the ring magnet. See the HW folder for HW design.
 
 ## Configuration
 
