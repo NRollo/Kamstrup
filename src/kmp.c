@@ -1,19 +1,25 @@
+/**
+ * @file kmp.c
+ * @brief UART communication with the meter's optical interface, see kmp.h.
+ */
+
 #include "kmp.h"
 #include "esp_check.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 
-#define KMP_BAUD_RATE        1200
-#define KMP_RX_BUFFER_SIZE   256
-#define KMP_RESPONSE_TIMEOUT_MS 1000
+#define KMP_BAUD_RATE        1200 /**< Baud rate of the optical interface. */
+#define KMP_RX_BUFFER_SIZE   256  /**< UART driver receive buffer size in bytes. */
+#define KMP_RESPONSE_TIMEOUT_MS 1000 /**< Time to wait for a complete response frame. */
 
-// Set to 1 to log every received byte, including the echo of our own request (receiver hardware test)
+/** Set to 1 to log every received byte, including the echo of our own request (receiver hardware test). */
 #define KMP_RX_DEBUG         1
 
 static const char *TAG = "KMP";
-static uart_port_t s_port = UART_NUM_1;
+static uart_port_t s_port = UART_NUM_1; /**< UART port set by kmp_init(). */
 
+/** Registers read by kmp_poll(), in order; the JSON key of each value is its name. */
 static const struct {
     uint16_t reg;
     const char *name;
@@ -50,9 +56,17 @@ esp_err_t kmp_init(uart_port_t port, int tx_pin, int rx_pin) {
     return ESP_OK;
 }
 
-/*
- * Collects one response frame. Anything before the 0x40 start byte (such as an
- * echo of our own request from the optical head) is ignored.
+/**
+ * @brief Collects one response frame.
+ *
+ * Anything before the 0x40 start byte (such as an echo of our own request from the optical head)
+ * is ignored.
+ *
+ * @param[out] frame Buffer for the bytes after the start byte, up to and including the end byte.
+ * @param max        Size of @p frame in bytes.
+ * @param[out] len   Number of bytes stored in @p frame.
+ * @return ESP_OK if a complete frame was received, ESP_ERR_TIMEOUT if nothing started within
+ *         KMP_RESPONSE_TIMEOUT_MS, ESP_ERR_INVALID_RESPONSE if the frame was incomplete or too long.
  */
 static esp_err_t read_frame(uint8_t *frame, size_t max, size_t *len) {
     const int64_t deadline = esp_timer_get_time() + (int64_t)KMP_RESPONSE_TIMEOUT_MS * 1000;

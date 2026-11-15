@@ -1,3 +1,8 @@
+/**
+ * @file meter_mqtt.c
+ * @brief MQTT publishing of meter readings, see meter_mqtt.h.
+ */
+
 #include "meter_mqtt.h"
 #include <stdio.h>
 #include <string.h>
@@ -7,13 +12,21 @@
 
 static const char *TAG = "MQTT";
 
-#define TOPIC_MAX 96
+#define TOPIC_MAX 96 /**< Maximum topic length including the terminating zero. */
 
-static esp_mqtt_client_handle_t s_client;
-static volatile bool s_connected;
-static char s_state_topic[TOPIC_MAX];
-static char s_status_topic[TOPIC_MAX];
+static esp_mqtt_client_handle_t s_client; /**< MQTT client, NULL until meter_mqtt_start() succeeds. */
+static volatile bool s_connected;         /**< True while connected to the broker. */
+static char s_state_topic[TOPIC_MAX];     /**< Topic for the readings: `<base>/state`. */
+static char s_status_topic[TOPIC_MAX];    /**< Topic for availability: `<base>/status`. */
 
+/**
+ * @brief Handles MQTT events: tracks the connection state and announces "online" after connecting.
+ *
+ * @param arg        Unused.
+ * @param base       Event base.
+ * @param event_id   One of esp_mqtt_event_id_t.
+ * @param event_data Event specific data.
+ */
 static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t event_id, void *event_data) {
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:

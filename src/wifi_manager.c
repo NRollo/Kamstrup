@@ -1,3 +1,8 @@
+/**
+ * @file wifi_manager.c
+ * @brief WiFi station setup with automatic reconnect, see wifi_manager.h.
+ */
+
 #include "wifi_manager.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
@@ -10,15 +15,25 @@
 
 static const char *TAG = "WIFI";
 
-#define WIFI_CONNECTED_BIT BIT0
+#define WIFI_CONNECTED_BIT BIT0 /**< Event group bit that is set while an IP address is held. */
 
-// Max TX power in 0.25 dBm units. SuperMini-style C3 boards often fail to authenticate at the
-// default 20 dBm (reason 2, AUTH_EXPIRE); 8.5 dBm is the usual fix. Raise it if signal is weak.
+/**
+ * Max TX power in 0.25 dBm units. SuperMini-style C3 boards often fail to authenticate at the
+ * default 20 dBm (reason 2, AUTH_EXPIRE); 8.5 dBm is the usual fix. Raise it if signal is weak.
+ */
 #define WIFI_TX_POWER_QDBM 66
 
-static EventGroupHandle_t s_wifi_event_group;
-static char s_ip_addr[16] = {0};
+static EventGroupHandle_t s_wifi_event_group; /**< Signals the connection state to wifi_init(). */
+static char s_ip_addr[16] = {0};              /**< Current IP address, empty while disconnected. */
 
+/**
+ * @brief Handles WiFi and IP events: connects on start, reconnects on disconnect, stores the IP address.
+ *
+ * @param arg        Unused.
+ * @param event_base WIFI_EVENT or IP_EVENT.
+ * @param event_id   Event identifier within @p event_base.
+ * @param event_data Event specific data.
+ */
 static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     if (event_base == WIFI_EVENT) {
         if (event_id == WIFI_EVENT_STA_START) {

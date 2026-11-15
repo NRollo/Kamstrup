@@ -1,6 +1,12 @@
+/**
+ * @file kmp_codec.c
+ * @brief KMP request building and response decoding, see kmp_codec.h.
+ */
+
 #include "kmp_codec.h"
 #include <math.h>
 
+/** Unit names indexed by KMP unit code. */
 static const char *const UNIT_NAMES[] = {
     "", "Wh", "kWh", "MWh", "GWh", "J", "kJ", "MJ", "GJ", "Cal", "kCal", "Mcal", "Gcal",
     "varh", "kvarh", "Mvarh", "Gvarh", "VAh", "kVAh", "MVAh", "GVAh", "kW", "kW", "MW", "GW",
@@ -28,6 +34,12 @@ uint16_t kmp_crc16(const uint8_t *data, size_t len) {
     return crc;
 }
 
+/**
+ * @brief Tells whether a byte must be escaped inside a frame.
+ *
+ * @param b Byte to check.
+ * @return Non-zero if @p b is a protocol control byte.
+ */
 static int needs_stuffing(uint8_t b) {
     return b == 0x06 || b == KMP_EOM || b == KMP_ESC || b == KMP_RESP_START || b == KMP_REQ_START;
 }

@@ -1,3 +1,8 @@
+/**
+ * @file main.c
+ * @brief Application entry point: reads a Kamstrup heat meter and publishes the values over MQTT.
+ */
+
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "esp_event.h"
@@ -14,18 +19,26 @@
 
 static const char *TAG = "MAIN";
 
-#define KMP_UART_PORT     UART_NUM_1
-#define KMP_TX_PIN        1
-#define KMP_RX_PIN        3
-#define READ_INTERVAL_SEC 10
-#define MQTT_BASE_TOPIC   "home/varme"
+#define KMP_UART_PORT     UART_NUM_1    /**< UART port connected to the optical head. */
+#define KMP_TX_PIN        1             /**< GPIO driving the IR LED. */
+#define KMP_RX_PIN        3             /**< GPIO reading the IR phototransistor. */
+#define READ_INTERVAL_SEC 30            /**< Seconds between meter polls. */
+#define MQTT_BASE_TOPIC   "home/varme"  /**< Base MQTT topic, see meter_mqtt_config_t::base_topic. */
 
-// Set to 1 to toggle the TX pin at 1 Hz forever (hardware test), 0 for normal operation
+/** Set to 1 to toggle the TX pin at 1 Hz forever (hardware test), 0 for normal operation. */
 #define KMP_TX_PIN_TEST   0
 
 #define STR_(x) #x
+/** Turns a macro value into a string literal, e.g. STR(MQTT_PORT) gives "1883". */
 #define STR(x)  STR_(x)
 
+/**
+ * @brief FreeRTOS task that polls the meter every READ_INTERVAL_SEC seconds and publishes the result.
+ *
+ * Pulses the status LED when at least one register was read, and logs a warning if publishing fails.
+ *
+ * @param arg Unused.
+ */
 static void meter_task(void *arg) {
     kmp_reading_t readings[KMP_NUM_VALUES];
 
@@ -42,6 +55,12 @@ static void meter_task(void *arg) {
     }
 }
 
+/**
+ * @brief ESP-IDF entry point.
+ *
+ * Initializes NVS, the event loop, the meter UART, the status LED, WiFi and MQTT,
+ * then starts meter_task() and returns.
+ */
 void app_main(void) {
 #if KMP_TX_PIN_TEST
     gpio_reset_pin(KMP_TX_PIN);
