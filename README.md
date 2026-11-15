@@ -5,10 +5,12 @@ interface using the Kamstrup Meter Protocol (KMP) and publishes the values to MQ
 
 ## Wiring
 
-| ESP32-C3 | Optical head |
-|----------|--------------|
-| GPIO1    | RX (from head) |
-| GPIO3    | TX (to head)   |
+| ESP32-C3 pin | UART function | Connected to |
+|--------------|---------------|--------------|
+| GPIO1        | TX            | IR LED driver (sends requests to the meter) |
+| GPIO3        | RX            | IR phototransistor (receives the meter's answer) |
+
+The pin names are from the ESP32-C3's point of view, matching `KMP_TX_PIN` and `KMP_RX_PIN` in `src/main.c`.
 
 UART1, 1200 baud, 8 data bits, no parity, 2 stop bits.
 
