@@ -11,7 +11,7 @@
                 "C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/include",
                 "C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/src",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/riscv/include",
-                "C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/.pio/build/supermini_esp32c3/config",
+                "C:/tmp/pio_build/supermini_esp32c3/config",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/esp_libc/platform_include",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/freertos/config/include",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/freertos/config/include/freertos",
@@ -113,7 +113,7 @@
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/port/psa_crypto_storage/include",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/include",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/include",
-                "C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/.pio/build/supermini_esp32c3/esp-idf/mbedtls/mbedtls/tf-psa-crypto/include",
+                "C:/tmp/pio_build/supermini_esp32c3/esp-idf/mbedtls/mbedtls/tf-psa-crypto/include",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/everest/include",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/p256-m/p256-m",
                 "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/pqcp/include",
@@ -252,7 +252,7 @@
                     "C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/include",
                     "C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/src",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/riscv/include",
-                    "C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/.pio/build/supermini_esp32c3/config",
+                    "C:/tmp/pio_build/supermini_esp32c3/config",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/esp_libc/platform_include",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/freertos/config/include",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/freertos/config/include/freertos",
@@ -354,7 +354,7 @@
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/port/psa_crypto_storage/include",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/include",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/include",
-                    "C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/.pio/build/supermini_esp32c3/esp-idf/mbedtls/mbedtls/tf-psa-crypto/include",
+                    "C:/tmp/pio_build/supermini_esp32c3/esp-idf/mbedtls/mbedtls/tf-psa-crypto/include",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/everest/include",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/p256-m/p256-m",
                     "C:/Users/niels/.platformio/packages/framework-espidf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/pqcp/include",
@@ -514,7 +514,7 @@
             "cppStandard": "gnu++26",
             "compilerPath": "C:/Users/niels/.platformio/packages/toolchain-riscv32-esp/bin/riscv32-esp-elf-gcc.exe",
             "compilerArgs": [
-                "@C:/Users/niels/Documents/PlatformIO/Projects/KMPLog/.pio/build/supermini_esp32c3/toolchain/cflags",
+                "@C:/tmp/pio_build/supermini_esp32c3/toolchain/cflags",
                 ""
             ]
         }
