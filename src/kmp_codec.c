@@ -45,11 +45,25 @@ static int needs_stuffing(uint8_t b) {
 }
 
 size_t kmp_build_request(uint16_t reg, uint8_t *out, size_t out_size) {
+    /*
+     * Message layout before framing (7 bytes):
+     *   [0] destination address (heat meter)
+     *   [1] command ID (GetRegister)
+     *   [2] number of registers requested (always 1)
+     *   [3] register number, high byte
+     *   [4] register number, low byte
+     *   [5] CRC-16 high byte  } filled in below, calculated over bytes 0..4
+     *   [6] CRC-16 low byte   }
+     */
     uint8_t msg[7] = {KMP_ADDR_HEAT_METER, KMP_CID_GET_REGISTER, 0x01, (uint8_t)(reg >> 8), (uint8_t)reg};
     uint16_t crc = kmp_crc16(msg, 5);
     msg[5] = (uint8_t)(crc >> 8);
     msg[6] = (uint8_t)crc;
 
+    /*
+     * Wire frame: 0x80, the message with byte stuffing applied, 0x0D.
+     * Every size check below guards against writing past out_size.
+     */
     size_t n = 0;
     if (out_size < 1) {
         return 0;
@@ -57,6 +71,7 @@ size_t kmp_build_request(uint16_t reg, uint8_t *out, size_t out_size) {
     out[n++] = KMP_REQ_START;
     for (size_t i = 0; i < sizeof(msg); i++) {
         if (needs_stuffing(msg[i])) {
+            // A control byte inside the message would end or confuse the frame: send ESC + inverted byte instead
             if (n + 2 > out_size) {
                 return 0;
             }
@@ -77,15 +92,29 @@ size_t kmp_build_request(uint16_t reg, uint8_t *out, size_t out_size) {
 }
 
 kmp_status_t kmp_parse_response(const uint8_t *frame, size_t len, uint16_t expected_reg, kmp_value_t *out) {
+    /*
+     * Message layout after removing the byte stuffing (9 to 13 bytes):
+     *   [0]       source address (heat meter)
+     *   [1]       command ID (GetRegister)
+     *   [2..3]    register number, high byte first
+     *   [4]       unit code
+     *   [5]       mantissa length in bytes (0 to 4)
+     *   [6]       SigExp byte: bit 7 = sign of the value, bit 6 = sign of the exponent, bits 0-5 = exponent
+     *   [7..]     mantissa, big endian
+     *   [last 2]  CRC-16 over everything before it
+     */
     uint8_t msg[KMP_MAX_FRAME_LEN];
     size_t n = 0;
 
+    // The frame must end with the end byte; it is not part of the message
     if (len < 2 || frame[len - 1] != KMP_EOM) {
         return KMP_ERR_FRAME;
     }
+    // Undo byte stuffing: ESC followed by a byte means the original byte is that byte XOR 0xFF
     for (size_t i = 0; i < len - 1; i++) {
         uint8_t b = frame[i];
         if (b == KMP_ESC) {
+            // An escape byte must be followed by the byte it escapes, before the end byte
             if (i + 1 >= len - 1) {
                 return KMP_ERR_FRAME;
             }
@@ -97,9 +126,11 @@ kmp_status_t kmp_parse_response(const uint8_t *frame, size_t len, uint16_t expec
         msg[n++] = b;
     }
 
+    // Shortest valid message: 7 header bytes without mantissa + 2 CRC bytes
     if (n < 9) {
         return KMP_ERR_FRAME;
     }
+    // The CRC is checked first, so a corrupted frame is never interpreted; the status then says what was wrong
     uint16_t rx_crc = (uint16_t)((msg[n - 2] << 8) | msg[n - 1]);
     if (kmp_crc16(msg, n - 2) != rx_crc) {
         return KMP_ERR_CRC;
@@ -107,6 +138,7 @@ kmp_status_t kmp_parse_response(const uint8_t *frame, size_t len, uint16_t expec
     if (msg[0] != KMP_ADDR_HEAT_METER || msg[1] != KMP_CID_GET_REGISTER) {
         return KMP_ERR_HEADER;
     }
+    // Reject a valid answer to a different request, e.g. a late reply to the previous register
     if ((uint16_t)((msg[2] << 8) | msg[3]) != expected_reg) {
         return KMP_ERR_REGISTER;
     }
@@ -114,6 +146,7 @@ kmp_status_t kmp_parse_response(const uint8_t *frame, size_t len, uint16_t expec
     uint8_t unit = msg[4];
     uint8_t mantissa_len = msg[5];
     uint8_t sigexp = msg[6];
+    // The mantissa must fit in 32 bits and fill the message exactly
     if (mantissa_len > 4 || n != (size_t)(7 + mantissa_len + 2)) {
         return KMP_ERR_PAYLOAD;
     }
@@ -122,6 +155,7 @@ kmp_status_t kmp_parse_response(const uint8_t *frame, size_t len, uint16_t expec
     for (uint8_t i = 0; i < mantissa_len; i++) {
         mantissa = (mantissa << 8) | msg[7 + i];
     }
+    // value = (+/-) mantissa * 10^(+/-exponent)
     int exponent = sigexp & 0x3F;
     if (sigexp & 0x40) {
         exponent = -exponent;

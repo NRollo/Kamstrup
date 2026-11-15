@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static const char *TAG = "WIFI";
+static const char *TAG = "WIFI"; /**< Log tag. */
 
 #define WIFI_CONNECTED_BIT BIT0 /**< Event group bit that is set while an IP address is held. */
 

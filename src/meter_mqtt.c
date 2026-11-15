@@ -10,7 +10,7 @@
 #include "esp_log.h"
 #include "mqtt_client.h"
 
-static const char *TAG = "MQTT";
+static const char *TAG = "MQTT"; /**< Log tag. */
 
 #define TOPIC_MAX 96 /**< Maximum topic length including the terminating zero. */
 

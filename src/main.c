@@ -17,7 +17,7 @@
 #include "status_led.h"
 #include "wifi_manager.h"
 
-static const char *TAG = "MAIN";
+static const char *TAG = "MAIN"; /**< Log tag. */
 
 #define KMP_UART_PORT     UART_NUM_1    /**< UART port connected to the optical head. */
 #define KMP_TX_PIN        1             /**< GPIO driving the IR LED. */
@@ -28,7 +28,7 @@ static const char *TAG = "MAIN";
 /** Set to 1 to toggle the TX pin at 1 Hz forever (hardware test), 0 for normal operation. */
 #define KMP_TX_PIN_TEST   0
 
-#define STR_(x) #x
+#define STR_(x) #x /**< Helper for STR(); stringizes its argument without macro expansion. */
 /** Turns a macro value into a string literal, e.g. STR(MQTT_PORT) gives "1883". */
 #define STR(x)  STR_(x)
 

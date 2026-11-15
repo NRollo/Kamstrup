@@ -10,3 +10,4 @@ include/secrets.h
 .vscode/settings.json
 .vscode/launch.json
 .vscode/extensions.json
+docs/latex/

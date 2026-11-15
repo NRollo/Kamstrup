@@ -16,14 +16,17 @@
 /** Set to 1 to log every received byte, including the echo of our own request (receiver hardware test). */
 #define KMP_RX_DEBUG         1
 
-static const char *TAG = "KMP";
+static const char *TAG = "KMP"; /**< Log tag. */
 static uart_port_t s_port = UART_NUM_1; /**< UART port set by kmp_init(). */
 
-/** Registers read by kmp_poll(), in order; the JSON key of each value is its name. */
-static const struct {
-    uint16_t reg;
-    const char *name;
-} REGISTERS[KMP_NUM_VALUES] = {
+/** @brief A register read by kmp_poll(). */
+typedef struct {
+    uint16_t reg;     /**< Register number. */
+    const char *name; /**< Name used as JSON key. */
+} kmp_register_t;
+
+/** Registers read by kmp_poll(), in order. */
+static const kmp_register_t REGISTERS[KMP_NUM_VALUES] = {
     {0x003C, "heat_energy"},
     {0x0050, "power"},
     {0x0056, "temp1"},

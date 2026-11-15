@@ -1,0 +1,38 @@
+# Doxygen configuration for KMPLog. Generates a PDF reference manual.
+#
+# Usage (from the project root):
+#   doxygen Doxyfile
+#   cd docs\latex && make        (or: pdflatex refman.tex, run twice)
+# The result is docs/latex/refman.pdf.
+
+PROJECT_NAME           = "KMPLog"
+PROJECT_BRIEF          = "Kamstrup Multical 403 to MQTT on ESP32-C3"
+OUTPUT_DIRECTORY       = docs
+
+# Input
+INPUT                  = README.md src include
+FILE_PATTERNS          = *.c *.h *.md
+EXCLUDE                = include/secrets.h
+RECURSIVE              = YES
+USE_MDFILE_AS_MAINPAGE = README.md
+
+# C project: document the static helpers and file-local variables as well
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_STATIC         = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_LOCAL_METHODS  = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_NO_PARAMDOC       = YES
+
+# Output: PDF only (LaTeX -> PDF)
+GENERATE_HTML          = NO
+GENERATE_LATEX         = YES
+LATEX_OUTPUT           = latex
+USE_PDFLATEX           = YES
+PDF_HYPERLINKS         = YES
+LATEX_BATCHMODE        = YES
+COMPACT_LATEX          = YES
+PAPER_TYPE             = a4
+
+# Diagrams need Graphviz; leave off so only Doxygen and LaTeX are required
+HAVE_DOT               = NO

@@ -48,6 +48,10 @@ uint16_t kmp_crc16(const uint8_t *data, size_t len);
 /**
  * @brief Builds a byte-stuffed GetRegister request for one register.
  *
+ * The frame is `0x80 | dest addr | CID | register count | register (2 bytes) | CRC-16 (2 bytes) | 0x0D`.
+ * The CRC covers the bytes between the start byte and the CRC itself. Any control byte inside the
+ * message (0x06, 0x0D, 0x1B, 0x40, 0x80) is sent as 0x1B followed by the byte XOR 0xFF.
+ *
  * @param reg      Register number to read.
  * @param out      Buffer that receives the complete frame, including start and end bytes.
  * @param out_size Size of @p out in bytes; KMP_MAX_REQUEST_LEN is always enough.
@@ -57,6 +61,10 @@ size_t kmp_build_request(uint16_t reg, uint8_t *out, size_t out_size);
 
 /**
  * @brief Decodes a GetRegister response.
+ *
+ * Removes the byte stuffing, verifies the CRC, address, command ID and register number, then
+ * converts the payload to `value = +/- mantissa * 10^(+/- exponent)`. The checks run in that order,
+ * so the returned status shows the first thing that was wrong.
  *
  * @param frame        Bytes after the 0x40 start byte, up to and including the 0x0D end byte.
  * @param len          Number of bytes in @p frame.
