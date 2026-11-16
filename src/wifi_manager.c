@@ -7,6 +7,7 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "esp_netif.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
@@ -21,10 +22,24 @@ static const char *TAG = "WIFI"; /**< Log tag. */
  * Max TX power in 0.25 dBm units. SuperMini-style C3 boards often fail to authenticate at the
  * default 20 dBm (reason 2, AUTH_EXPIRE); 8.5 dBm is the usual fix. Raise it if signal is weak.
  */
-#define WIFI_TX_POWER_QDBM 66
+#define WIFI_TX_POWER_QDBM 80
+
+#define RECONNECT_MIN_DELAY_MS 1000  /**< Delay before the first reconnect attempt. */
+#define RECONNECT_MAX_DELAY_MS 30000 /**< Upper bound for the exponential reconnect backoff. */
 
 static EventGroupHandle_t s_wifi_event_group; /**< Signals the connection state to wifi_init(). */
 static char s_ip_addr[16] = {0};              /**< Current IP address, empty while disconnected. */
+static esp_timer_handle_t s_reconnect_timer;  /**< One-shot timer that triggers the next reconnect attempt. */
+static uint32_t s_reconnect_delay_ms = RECONNECT_MIN_DELAY_MS; /**< Delay used for the next reconnect attempt. */
+
+/**
+ * @brief Timer callback: tries to connect again.
+ *
+ * @param arg Unused.
+ */
+static void reconnect_timer_cb(void *arg) {
+    esp_wifi_connect();
+}
 
 /**
  * @brief Handles WiFi and IP events: connects on start, reconnects on disconnect, stores the IP address.
@@ -42,8 +57,15 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
             const wifi_event_sta_disconnected_t *ev = (const wifi_event_sta_disconnected_t *)event_data;
             s_ip_addr[0] = '\0';
             xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
-            ESP_LOGW(TAG, "Disconnected (reason %d), reconnecting", ev ? ev->reason : -1);
-            esp_wifi_connect();
+            ESP_LOGW(TAG, "Disconnected (reason %d), reconnecting in %u ms",
+                     ev ? ev->reason : -1, (unsigned)s_reconnect_delay_ms);
+            // Back off so a missing/rebooting AP isn't hammered and the radio/log aren't flooded
+            esp_timer_stop(s_reconnect_timer);
+            esp_timer_start_once(s_reconnect_timer, (uint64_t)s_reconnect_delay_ms * 1000);
+            s_reconnect_delay_ms *= 2;
+            if (s_reconnect_delay_ms > RECONNECT_MAX_DELAY_MS) {
+                s_reconnect_delay_ms = RECONNECT_MAX_DELAY_MS;
+            }
         }
         return;
     }
@@ -52,12 +74,19 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         snprintf(s_ip_addr, sizeof(s_ip_addr), IPSTR, IP2STR(&event->ip_info.ip));
         ESP_LOGI(TAG, "got ip: %s", s_ip_addr);
+        s_reconnect_delay_ms = RECONNECT_MIN_DELAY_MS;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     }
 }
 
 bool wifi_init(const char *ssid, const char *password) {
     s_wifi_event_group = xEventGroupCreate();
+
+    const esp_timer_create_args_t timer_args = {
+        .callback = reconnect_timer_cb,
+        .name = "wifi_reconnect",
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &s_reconnect_timer));
 
     ESP_ERROR_CHECK(esp_netif_init());
     esp_netif_create_default_wifi_sta();
